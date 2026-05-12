@@ -221,14 +221,79 @@ straight or left) tăng từ 0.28–0.60 lên 0.80+; recall của speed limits t
 
 ---
 
-## Phase 4 — Roadmap (sau khi train lại với Fix #1+#2)
+## Phase 4 — Kết quả train lại với Fix #1+#2
 
-1. **Đánh giá lại** trên 12,630 ảnh test — mục tiêu **≥95%**
-2. So sánh confusion matrix trước/sau để verify cải thiện ở 4 lớp problematic
-3. Nếu **đạt mục tiêu**: lock model, viết user guide app Streamlit
-4. Nếu **chưa đạt 95%**: thử Fix #3 (LR thấp + warmup) — riêng lẻ trước, cùng lúc sau
-5. Nếu vẫn **<93%**: cân nhắc Transfer Learning (MobileNetV2 / EfficientNetB0)
+### 4.1 Tổng kết metric (test set 12,630 ảnh GTSRB)
 
+| Metric | Phase 2 (v1) | Phase 4 (v2) | Δ |
+|---|---|---|---|
+| **Test accuracy** | 89.78% | **97.09%** | **+7.31 pp** ✅ |
+| Test top-3 | 97.24% | **99.34%** | +2.10 pp |
+| Test loss | — | **0.1108** | — |
+| Macro-F1 | — | **0.9617** | — |
+| Weighted-F1 | — | **0.9711** | — |
+
+→ **Vượt mục tiêu ≥95%**. Không cần áp Fix #3–#6 dự phòng.
+
+### 4.2 Hành vi training
+
+Đọc `reports/training_log.csv` (60 epochs, không EarlyStopping):
+
+| Mốc | Epoch | val_acc | val_loss | LR | Ghi chú |
+|---|---|---|---|---|---|
+| Khởi động loạn | 0–7 | 0.01–0.21 | 7.5 → 4.1 | 1e-3 → 5e-4 | Vẫn 7 epoch warm-up "chậm" như Phase 2 |
+| Bứt phá | 14–20 | 0.34 → 0.62 | 2.59 → 1.23 | 2.5e-4 | ReduceLR lần 2 (ep 10) ổn định lại |
+| Ổn định cao | 30–46 | 0.81 → 0.96 | 0.32 → 0.12 | 2.5e-4 | Train/val sát nhau, không overfit |
+| Hội tụ | 47–59 | 0.97 → **0.991** | 0.084 → **0.032** | 1.25e-4 | LR giảm lần 3 (ep 47) tinh chỉnh nốt |
+| **Cuối** (ep 59) | — | **0.9911** | **0.0319** | 1.25e-4 | train_acc 0.9742 → không overfit |
+
+Best val_acc = **0.9923** (ep 57). EarlyStopping không trigger vì val_loss vẫn dao động giảm.
+
+### 4.3 Verify 4 lớp "problematic" của Phase 2
+
+| Lớp | Precision (P2 → P4) | Recall (P2 → P4) | Đánh giá |
+|---|---|---|---|
+| Xe đạp qua đường | 0.28 → **0.93** | 1.00 → 1.00 | ✅ Đẩy precision +0.65 |
+| Rẽ trái phía trước | 0.40 → **0.95** | 1.00 → 1.00 | ✅ Đẩy precision +0.55 |
+| Cẩn thận băng/tuyết | 0.58 → **0.85** | 0.98 → 0.98 | ✅ +0.27 |
+| Đi thẳng hoặc rẽ trái | 0.60 → **0.98** | 1.00 → 1.00 | ✅ +0.38 |
+
+Và recall các speed limit hồi phục:
+
+| Lớp | Recall (P2 → P4) | Precision (P2 → P4) |
+|---|---|---|
+| Speed limit (20km/h) | 0.73 → **0.95** | 1.00 → 1.00 |
+| Speed limit (30km/h) | 0.77 → **0.97** | 1.00 → 0.99 |
+| Speed limit (50km/h) | 0.66 → **0.98** | 1.00 → 1.00 |
+
+→ Cả 2 hướng (over-predict minorities + under-predict speed limits) đã được giải quyết.
+Việc giảm `class_weight` cap 5.0 → 2.0 đúng hướng.
+
+### 4.4 Vấn đề còn tồn (cho Phase 5)
+
+Một số lớp f1 < 0.92 — chủ yếu là **under-recall** (model "kén chọn" hơn ở các lớp
+hiếm/mịn) hoặc **over-precision sụt** ở 2 lớp đặc thù:
+
+| Lớp | Precision | Recall | F1 | Hướng vấn đề |
+|---|---|---|---|---|
+| Bắt buộc đi vòng xuyến | **0.67** | 0.97 | 0.79 | Over-predict (false positive cao) |
+| Hết đoạn cấm vượt với xe >3.5t | **0.76** | 0.86 | 0.81 | Cả P và R đều thấp — dễ nhầm với lớp 41 |
+| Giới hạn tốc độ (60km/h) | 1.00 | **0.83** | 0.91 | Under-predict — nhầm sang 50/80 |
+| Hết giới hạn tốc độ (80km/h) | 1.00 | **0.83** | 0.91 | Under-predict |
+| Đường gồ ghề | 0.99 | **0.83** | 0.90 | Under-predict |
+| Giới hạn tốc độ (120km/h) | 0.99 | **0.89** | 0.94 | Under-predict |
+
+Số lượng lớp này nhỏ (6/43) và đều >0.79 f1 — không ảnh hưởng bottom-line nhưng
+là vùng cải thiện rõ ràng nhất.
+
+### 4.5 Roadmap Phase 5 (tùy chọn, nếu muốn ≥98%)
+
+1. **Tách 2 cặp dễ nhầm** (40 vs 41/42, 03/05 vs 06/08) bằng confusion matrix
+   → áp dụng **mixup/cutmix** tập trung cho cặp này
+2. **Test-time augmentation** (TTA): predict 5 crop + flip → vote → kỳ vọng +0.3–0.5 pp
+3. **Transfer learning** MobileNetV2 / EfficientNetB0 (input 96×96) — chỉ thử nếu cần
+   ≥98% cho yêu cầu khắt khe hơn
+4. **Hiện tại**: model đủ tốt cho app Streamlit demo → ưu tiên ship
 
 ---
 
@@ -293,4 +358,5 @@ Hoặc thủ công:
 | 0 (initial) | VN 50 lớp | **0.53%** | Collapse |
 | 0 (Đợt 1 fix) | VN 35 lớp | **98.44%** | Mất 17 lớp hiếm |
 | 1–2 (GTSRB v1) | GTSRB 43 lớp | **89.78%** | Under-trained + over-weighted |
-| **3 (GTSRB v2)** | **GTSRB 43 lớp** | **(đang train)** | **Fix #1+#2 — kỳ vọng ≥95%** |
+| 3–4 (GTSRB v2) | GTSRB 43 lớp | **97.09%** | Fix #1+#2 — đạt mục tiêu ≥95% (top-3 99.34%) |
+| **5 (tùy chọn)** | GTSRB 43 lớp | (chưa train) | TTA / mixup / transfer learning nếu cần ≥98% |
