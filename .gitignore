@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data & models (tránh push file lớn lên git)
+data/images/
+data/labels/
+data/processed/
+data/gtsrb_raw/
+data/split_dataset/
+models/*.h5
+models/*.keras
+models/checkpoints/
+*.zip
+*.tar.gz
+
+# Reports / logs
+reports/figures/*.png
+reports/figures/*.jpg
+reports/metrics.json
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Kaggle credentials
+kaggle.json
