@@ -67,7 +67,7 @@ def _show_results(model, labels, pil_image: Image.Image, top_k: int) -> None:
         st.progress(prob, text=f"{prob*100:.2f}%")
 
 
-def render_upload_tab(model, labels):
+def _sidebar_predict_controls():
     top_k = st.sidebar.slider("Số kết quả top-k", 1, 5, 3)
     use_crop = st.sidebar.checkbox(
         "✂️ Crop ROI thủ công (khuyến nghị)", value=True,
@@ -80,17 +80,12 @@ def render_upload_tab(model, labels):
         help="Biển báo thường vuông → giữ 1:1 cho ổn định.",
     )
     aspect_ratio = (1, 1) if aspect_choice == "Vuông 1:1" else None
+    return top_k, use_crop, aspect_ratio
 
-    uploaded = st.file_uploader(
-        "Tải lên ảnh biển báo (JPG/PNG)",
-        type=["jpg", "jpeg", "png"],
-    )
-    if uploaded is None:
-        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
-        return
 
-    image = Image.open(uploaded).convert("RGB")
-
+def _render_predict_panel(model, labels, image: Image.Image, top_k: int,
+                          use_crop: bool, aspect_ratio, cropper_key: str) -> None:
+    """Hiển thị ảnh + (tuỳ chọn crop ROI) + kết quả predict. Dùng chung cho Upload và Capture."""
     if not use_crop:
         col1, col2 = st.columns([1, 1])
         with col1:
@@ -112,7 +107,7 @@ def render_upload_tab(model, labels):
                        f"kết quả vì model luôn resize về {C.IMG_SIZE}×{C.IMG_SIZE}).")
         cropped = st_cropper(
             display_image, realtime_update=True, box_color="#00FF00",
-            aspect_ratio=aspect_ratio, return_type="image", key="roi_cropper",
+            aspect_ratio=aspect_ratio, return_type="image", key=cropper_key,
         )
     with col2:
         if cropped is None or min(cropped.size) < MIN_CROP_PX:
@@ -123,6 +118,33 @@ def render_upload_tab(model, labels):
                     f"→ resize `{C.IMG_SIZE}×{C.IMG_SIZE}`")
         st.image(cropped, use_container_width=True)
         _show_results(model, labels, cropped, top_k)
+
+
+def render_upload_tab(model, labels):
+    top_k, use_crop, aspect_ratio = _sidebar_predict_controls()
+    uploaded = st.file_uploader(
+        "Tải lên ảnh biển báo (JPG/PNG)",
+        type=["jpg", "jpeg", "png"],
+    )
+    if uploaded is None:
+        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
+        return
+    image = Image.open(uploaded).convert("RGB")
+    _render_predict_panel(model, labels, image, top_k, use_crop, aspect_ratio,
+                          cropper_key="roi_cropper_upload")
+
+
+def render_capture_tab(model, labels):
+    top_k, use_crop, aspect_ratio = _sidebar_predict_controls()
+    st.caption("Bấm nút bên dưới để chụp 1 ảnh từ webcam, sau đó kéo khung "
+               "xanh để chọn vùng biển báo.")
+    captured = st.camera_input("📷 Chụp ảnh biển báo")
+    if captured is None:
+        st.info("Hãy bấm nút chụp ảnh phía trên để bắt đầu.")
+        return
+    image = Image.open(captured).convert("RGB")
+    _render_predict_panel(model, labels, image, top_k, use_crop, aspect_ratio,
+                          cropper_key="roi_cropper_capture")
 
 
 def main():
@@ -139,10 +161,15 @@ def main():
     model, labels = load_model_and_labels()
     st.sidebar.write(f"**Số lớp:** {len(labels)}")
     st.sidebar.write(f"**Kích thước ảnh:** {C.IMG_SIZE}×{C.IMG_SIZE}")
-    mode = st.sidebar.radio("Chế độ", ["📁 Upload ảnh", "🎥 Camera realtime"])
+    mode = st.sidebar.radio(
+        "Chế độ",
+        ["📁 Upload ảnh", "📷 Chụp ảnh từ webcam", "🎥 Camera realtime"],
+    )
 
     if mode == "🎥 Camera realtime":
         render_realtime_tab(model, labels)
+    elif mode == "📷 Chụp ảnh từ webcam":
+        render_capture_tab(model, labels)
     else:
         render_upload_tab(model, labels)
 
