@@ -126,8 +126,8 @@ def render_upload_tab(model, labels):
 
 
 def main():
-    st.title("🚦 Xây dựng mô hình CNN cho bài toán phân loại biển báo giao thông")
-    st.caption("Đồ án cuối kỳ — CNN tự xây dựng, thực nghiệm trên bộ GTSRB")
+    st.title("🚦 CNN tự xây dựng — Phân loại biển báo giao thông")
+    st.caption("Đồ án cuối kỳ — thực nghiệm trên bộ GTSRB")
 
     if not C.MODEL_PATH.exists():
         st.error(
