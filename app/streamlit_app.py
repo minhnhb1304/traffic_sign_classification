@@ -37,7 +37,7 @@ def _prepare_for_cropper(img: Image.Image,
     return img.resize(new_size, Image.LANCZOS), scale
 
 
-st.set_page_config(page_title="Nhận diện biển báo GTSRB",
+st.set_page_config(page_title="Phân loại biển báo giao thông — CNN",
                    page_icon="🚦", layout="centered")
 
 
@@ -126,8 +126,8 @@ def render_upload_tab(model, labels):
 
 
 def main():
-    st.title("🚦 Nhận diện biển báo giao thông GTSRB")
-    st.caption("Demo CNN tự xây dựng — Đồ án cuối kỳ")
+    st.title("🚦 Xây dựng mô hình CNN cho bài toán phân loại biển báo giao thông")
+    st.caption("Đồ án cuối kỳ — CNN tự xây dựng, thực nghiệm trên bộ GTSRB")
 
     if not C.MODEL_PATH.exists():
         st.error(

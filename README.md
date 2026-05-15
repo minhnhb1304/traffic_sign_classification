@@ -1,6 +1,6 @@
-# 🚦 Nhận diện biển báo giao thông GTSRB bằng CNN tự xây
+# 🚦 Xây dựng mô hình mạng nơ-ron tích chập (CNN) cho bài toán phân loại biển báo giao thông
 
-Đồ án cuối kỳ — phân loại biển báo giao thông trên bộ dữ liệu **GTSRB (German Traffic Sign Recognition Benchmark, 43 lớp)** sử dụng mạng nơ-ron tích chập (CNN) tự xây dựng bằng TensorFlow/Keras, kèm demo web bằng Streamlit.
+Đồ án cuối kỳ — phân loại biển báo giao thông bằng mạng CNN **tự xây dựng** (không dùng pretrained) trên TensorFlow/Keras, thực nghiệm trên bộ dữ liệu chuẩn **GTSRB (German Traffic Sign Recognition Benchmark, 43 lớp)**, kèm demo web bằng Streamlit.
 
 ## Mục tiêu
 

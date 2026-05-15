@@ -31,7 +31,7 @@ python -m src.predict --image demo_images/tier1_gtsrb/01_stop.png
 
 ### Phase 0 — Mở đầu (1 phút)
 
-> *"Em xin trình bày đồ án **Nghiên cứu kiến trúc CNN cho bài toán phân loại biển báo giao thông**. Hệ thống gồm 3 phần: pipeline preprocessing, mô hình CNN tự xây dựng, và demo Streamlit."*
+> *"Em xin trình bày đồ án **Xây dựng mô hình mạng nơ-ron tích chập (CNN) cho bài toán phân loại biển báo giao thông**. Hệ thống gồm 3 phần: pipeline tiền xử lý, mô hình CNN tự xây dựng (không dùng pretrained), và demo Streamlit."*
 
 **Show**: slide title + sidebar Streamlit (43 lớp, input 48×48).
 
