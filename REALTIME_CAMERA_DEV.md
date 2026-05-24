@@ -42,7 +42,7 @@ reports/
 
 | Vấn đề | Cách giải quyết |
 |---|---|
-| Inference latency trên Keras | Dùng full Keras (FP32) trước; nếu < 10 FPS sẽ thay bằng TFLite interpreter (mục 9 spec — chưa làm) |
+| Inference latency trên Keras | Dùng full Keras (FP32); model nhỏ (~333K params) nên CPU laptop vẫn đạt ≥ 12 FPS |
 | Predict block UI | `streamlit-webrtc` chạy `recv()` trong worker thread riêng; main thread chỉ render UI |
 | Nhãn nhấp nháy | Smoothing rolling-mean softmax với `deque(maxlen=N)`, default N=5 |
 | Race condition khi snapshot | `threading.Lock` bảo vệ `_last_frame_bgr` / `_last_label` / `_last_conf` |
@@ -88,7 +88,6 @@ Trong app:
 
 ## 8. Phần spec chưa làm (nice-to-have)
 
-- **TFLite backend** (spec mục 9): swap `predict_proba()` sang `tf.lite.Interpreter` để tăng FPS trên CPU.
 - **Multi-camera select**: hiện UA/trình duyệt tự chọn; chưa có dropdown.
 - **HTTPS / TURN server**: bỏ qua vì spec đã chốt "chỉ chạy local trong defense".
 - **Pytest cho overlay & inference**: chưa viết test (`tests/test_realtime.py`).
@@ -98,4 +97,3 @@ Trong app:
 - Spec: [`REALTIME_CAMERA_SPEC.md`](REALTIME_CAMERA_SPEC.md)
 - Preprocessing parity: [`PREPROCESSING.md`](PREPROCESSING.md), `src/preprocessing.py::preprocess_single_image`
 - streamlit-webrtc docs: <https://github.com/whitphx/streamlit-webrtc>
-- Báo cáo TFLite (cùng codebase, dùng cho repo Android riêng): [`EXPORT_TFLITE.md`](EXPORT_TFLITE.md)

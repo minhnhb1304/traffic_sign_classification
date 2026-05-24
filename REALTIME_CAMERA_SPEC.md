@@ -29,7 +29,6 @@
 | Stream webcam | **streamlit-webrtc** | Chạy WebRTC trong browser; có sẵn pattern `VideoProcessorBase` |
 | Codec frame | **PyAV** (`av`) | Dependency bắt buộc của streamlit-webrtc |
 | Inference | **TensorFlow Keras** (model hiện tại) | Tận dụng nguyên `preprocess_single_image` |
-| (Tuỳ chọn) tăng tốc | TFLite FP16 (đã xuất ở `models/tflite/`) | Nếu latency CPU > 80 ms/frame |
 | Vẽ overlay | **OpenCV** (`cv2.putText`, `cv2.rectangle`) | Đã có trong `requirements.txt` |
 
 Thêm dependency:
@@ -102,8 +101,6 @@ else:
 | Cold start (load model) | < 2 s | Dùng `@st.cache_resource` |
 | Băng thông WebRTC | < 1 Mbps | Đặt `media_stream_constraints={"video": {"width": 640}}` |
 
-Nếu latency cao: chuyển sang **TFLite FP16** (`models/tflite/custom_cnn_v1_fp16.tflite`) qua `tf.lite.Interpreter` — dùng cùng API trong `inference.py`.
-
 ## 9. UX sidebar (mode realtime)
 
 - Slider `ROI ratio` (0.3–0.9, default 0.5).
@@ -137,8 +134,7 @@ Nếu latency cao: chuyển sang **TFLite FP16** (`models/tflite/custom_cnn_v1_f
 | 4 | Tạo `video_processor.py` với `SignVideoProcessor` (ROI + smoothing + threshold) | Smoke test bật camera thấy overlay |
 | 5 | Wire vào `streamlit_app.py` qua `st.sidebar.radio` | Cả 2 mode hoạt động |
 | 6 | Snapshot button + lưu file | File ra đúng `reports/snapshots/` |
-| 7 | (Tuỳ chọn) backend TFLite FP16 | Latency < 25 ms/frame |
-| 8 | Cập nhật README mục "Bước 5 — Demo web" | Tài liệu đồng bộ |
+| 7 | Cập nhật README mục "Bước 5 — Demo web" | Tài liệu đồng bộ |
 
 ## 13. Rủi ro & mitigation
 

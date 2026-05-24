@@ -52,8 +52,7 @@ final_project/
 ├── PREPROCESSING.md         # Chi tiết pipeline tiền xử lý
 ├── MODEL_DEVELOPMENT.md     # Lịch sử phát triển model (VN → GTSRB)
 ├── REALTIME_CAMERA_SPEC.md  # Design spec camera realtime
-├── REALTIME_CAMERA_DEV.md   # Dev log camera realtime
-└── EXPORT_TFLITE.md         # Hướng dẫn export TFLite
+└── REALTIME_CAMERA_DEV.md   # Dev log camera realtime
 ```
 
 ## Cài đặt
