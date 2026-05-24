@@ -22,10 +22,33 @@ from src.preprocessing import preprocess_single_image  # noqa: E402
 from app.realtime.tab import render_realtime_tab  # noqa: E402
 
 MIN_CROP_PX = 16
+# Layout "centered" cho col1 (tỷ lệ 2:1) rộng ~460px → giới hạn cạnh dài < 440
+# để ảnh không tràn sang col2 (gây che kết quả dự đoán).
+CROPPER_MIN_SIDE = 320   # upscale ảnh nhỏ để có vùng thao tác đủ rộng
+CROPPER_MAX_SIDE = 420   # downscale ảnh lớn để vừa khít col1, không tràn layout
 
 
 st.set_page_config(page_title="Phân loại biển báo giao thông",
                    page_icon="🚦", layout="centered")
+
+
+def _fit_for_cropper(img: Image.Image,
+                     min_side: int = CROPPER_MIN_SIDE,
+                     max_side: int = CROPPER_MAX_SIDE) -> Image.Image:
+    """Resize ảnh để cropper UI vừa khít vùng thao tác.
+
+    Model luôn resize ROI về IMG_SIZE nên scale ở đây không ảnh hưởng accuracy.
+    """
+    w, h = img.size
+    short, long_ = min(w, h), max(w, h)
+    if short < min_side:
+        scale = min_side / short
+    elif long_ > max_side:
+        scale = max_side / long_
+    else:
+        return img
+    new_size = (round(w * scale), round(h * scale))
+    return img.resize(new_size, Image.LANCZOS)
 
 
 @st.cache_resource
@@ -57,9 +80,9 @@ def _show_results(model, labels, pil_image: Image.Image, top_k: int) -> None:
 def render_upload_tab(model, labels):
     top_k = st.sidebar.slider("Số kết quả hiển thị", 1, 5, 3)
     use_crop = st.sidebar.checkbox(
-        "✂️ Crop ROI thủ công (khuyến nghị)", value=True,
+        "✂️ Crop ROI thủ công", value=True,
         help="Kéo khung xanh để chọn vùng chứa biển báo. "
-             "Bỏ tick để predict trực tiếp ảnh full-size (acc giảm mạnh).",
+             "Bỏ tick để predict trực tiếp ảnh full-size.",
     )
     aspect_choice = st.sidebar.radio(
         "Tỷ lệ khung crop", ["Vuông 1:1", "Tự do"],
@@ -84,16 +107,20 @@ def render_upload_tab(model, labels):
             st.image(image, caption="Ảnh đầu vào (full-size, không crop)",
                      use_container_width=True)
         with col2:
-            st.warning("⚠️ Mode full-size: model là **classifier**, "
-                       "ảnh không crop → accuracy giảm đáng kể.")
             _show_results(model, labels, image, top_k)
+            st.warning("⚠️ Mode full-size: Ảnh không crop → accuracy giảm đáng kể.")
         return
 
+    display_image = _fit_for_cropper(image)
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.markdown("**🖱️ Kéo khung xanh để chọn vùng biển báo (ROI)**")
+        st.markdown("🖱️ Kéo khung xanh để chọn vùng biển báo ")
+        # if display_image.size != image.size:
+        #     st.caption(f"Ảnh gốc `{image.size[0]}×{image.size[1]}` px → "
+        #                f"hiển thị `{display_image.size[0]}×{display_image.size[1]}` "
+        #                f"px cho dễ thao tác (không ảnh hưởng kết quả).")
         cropped = st_cropper(
-            image, realtime_update=True, box_color="#00FF00",
+            display_image, realtime_update=True, box_color="#00FF00",
             aspect_ratio=aspect_ratio, return_type="image", key="roi_cropper",
         )
     with col2:
@@ -101,8 +128,8 @@ def render_upload_tab(model, labels):
             st.warning(f"Khung crop quá nhỏ (<{MIN_CROP_PX}px). "
                        "Kéo khung lớn hơn để predict.")
             return
-        st.markdown(f"**ROI:** `{cropped.size[0]}×{cropped.size[1]}` px "
-                    f"→ resize `{C.IMG_SIZE}×{C.IMG_SIZE}`")
+        # st.markdown(f"**ROI:** `{cropped.size[0]}×{cropped.size[1]}` px "
+        #             f"→ resize `{C.IMG_SIZE}×{C.IMG_SIZE}`")
         st.image(cropped, use_container_width=True)
         _show_results(model, labels, cropped, top_k)
 

@@ -37,7 +37,7 @@ def render_realtime_tab(model, labels: list[str]) -> None:
         st.markdown("---")
         st.markdown("**Tham số realtime**")
         roi_ratio = st.slider(
-            "Kích thước ROI (so với cạnh ngắn)",
+            "Kích thước ROI",
             0.30, 0.90, 0.50, 0.05,
             help="Tỷ lệ vùng vuông ở giữa khung hình so với cạnh ngắn của frame. "
                  "Tăng giá trị nếu biển báo ở gần camera, giảm nếu biển báo ở xa.",
@@ -63,7 +63,7 @@ def render_realtime_tab(model, labels: list[str]) -> None:
         ctx.video_processor.configure(
             model=model, labels=labels,
             roi_ratio=roi_ratio, threshold=threshold,
-            smooth_window=smooth_window,
+            smooth_window=smooth_window, show_fps=0
         )
 
     col1, col2 = st.columns([1, 3])
