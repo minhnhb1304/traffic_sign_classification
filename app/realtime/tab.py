@@ -30,18 +30,17 @@ def _save_snapshot(frame_bgr, label: str, conf: float) -> Path:
 
 
 def render_realtime_tab(model, labels: list[str]) -> None:
-    st.subheader("🎥 Nhận diện qua camera (realtime)")
-    st.caption("Đưa biển báo vào khung vuông xanh ở giữa hình. "
-               "Model chỉ phân loại 1 biển/lần (43 lớp GTSRB).")
+    st.subheader("🎥 Phân loại biển báo bằng camera")
+    st.caption("Đưa biển báo vào khung vuông xanh ở giữa hình.")
 
     with st.sidebar:
         st.markdown("---")
         st.markdown("**Tham số realtime**")
-        roi_ratio = st.slider("Kích thước ROI (so với cạnh ngắn)",
+        roi_ratio = st.slider("Kích thước ROI)",
                               0.30, 0.90, 0.50, 0.05)
         threshold = st.slider("Ngưỡng confidence", 0.30, 0.95, 0.60, 0.05)
         smooth_window = st.slider("Smoothing (số frame)", 1, 10, 5, 1)
-        show_fps = st.toggle("Hiển thị FPS (debug)", value=False)
+        #show_fps = st.toggle("Hiển thị FPS (debug)", value=False)
 
     ctx = webrtc_streamer(
         key="sign-realtime",
@@ -56,7 +55,7 @@ def render_realtime_tab(model, labels: list[str]) -> None:
         ctx.video_processor.configure(
             model=model, labels=labels,
             roi_ratio=roi_ratio, threshold=threshold,
-            smooth_window=smooth_window, show_fps=show_fps,
+            smooth_window=smooth_window,
         )
 
     col1, col2 = st.columns([1, 3])
@@ -85,8 +84,6 @@ def render_realtime_tab(model, labels: list[str]) -> None:
 
     with st.expander("ℹ Lưu ý"):
         st.markdown(
-            "- Model là **classifier**, không phải detector → mỗi frame chỉ phân loại "
-            "**1 biển** trong khung ROI ở giữa.\n"
-            "- Nhãn ngoài 43 lớp GTSRB sẽ bị nhận nhầm; tăng **threshold** để giảm rác.\n"
+            "- Mỗi frame chỉ phân loại 1 biển báo trong khung ROI ở giữa. \n "
             "- Ảnh snapshot lưu tại `reports/snapshots/`."
         )
