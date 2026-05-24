@@ -1,4 +1,4 @@
-"""Streamlit demo: nhận diện biển báo giao thông GTSRB.
+"""Streamlit demo: phân loại biển báo giao thông GTSRB.
 
 Chạy:
     streamlit run app/streamlit_app.py
@@ -22,22 +22,9 @@ from src.preprocessing import preprocess_single_image  # noqa: E402
 from app.realtime.tab import render_realtime_tab  # noqa: E402
 
 MIN_CROP_PX = 16
-DISPLAY_MIN_SIDE = 480  # upscale ảnh nhỏ để cropper UI có vùng thao tác đủ rộng
 
 
-def _prepare_for_cropper(img: Image.Image,
-                         min_side: int = DISPLAY_MIN_SIDE) -> tuple[Image.Image, float]:
-    """Upscale ảnh nếu cạnh ngắn nhỏ hơn min_side. Trả về (ảnh hiển thị, scale)."""
-    w, h = img.size
-    short = min(w, h)
-    if short >= min_side:
-        return img, 1.0
-    scale = min_side / short
-    new_size = (round(w * scale), round(h * scale))
-    return img.resize(new_size, Image.LANCZOS), scale
-
-
-st.set_page_config(page_title="Phân loại biển báo giao thông — CNN",
+st.set_page_config(page_title="Phân loại biển báo giao thông",
                    page_icon="🚦", layout="centered")
 
 
@@ -67,8 +54,8 @@ def _show_results(model, labels, pil_image: Image.Image, top_k: int) -> None:
         st.progress(prob, text=f"{prob*100:.2f}%")
 
 
-def _sidebar_predict_controls():
-    top_k = st.sidebar.slider("Số kết quả top-k", 1, 5, 3)
+def render_upload_tab(model, labels):
+    top_k = st.sidebar.slider("Số kết quả hiển thị", 1, 5, 3)
     use_crop = st.sidebar.checkbox(
         "✂️ Crop ROI thủ công (khuyến nghị)", value=True,
         help="Kéo khung xanh để chọn vùng chứa biển báo. "
@@ -80,12 +67,17 @@ def _sidebar_predict_controls():
         help="Biển báo thường vuông → giữ 1:1 cho ổn định.",
     )
     aspect_ratio = (1, 1) if aspect_choice == "Vuông 1:1" else None
-    return top_k, use_crop, aspect_ratio
 
+    uploaded = st.file_uploader(
+        "Tải lên ảnh biển báo (JPG/PNG)",
+        type=["jpg", "jpeg", "png"],
+    )
+    if uploaded is None:
+        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
+        return
 
-def _render_predict_panel(model, labels, image: Image.Image, top_k: int,
-                          use_crop: bool, aspect_ratio, cropper_key: str) -> None:
-    """Hiển thị ảnh + (tuỳ chọn crop ROI) + kết quả predict. Dùng chung cho Upload và Capture."""
+    image = Image.open(uploaded).convert("RGB")
+
     if not use_crop:
         col1, col2 = st.columns([1, 1])
         with col1:
@@ -97,17 +89,12 @@ def _render_predict_panel(model, labels, image: Image.Image, top_k: int,
             _show_results(model, labels, image, top_k)
         return
 
-    display_image, scale = _prepare_for_cropper(image)
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown("**🖱️ Kéo khung xanh để chọn vùng biển báo (ROI)**")
-        if scale > 1.0:
-            st.caption(f"Ảnh gốc `{image.size[0]}×{image.size[1]}` px nhỏ → "
-                       f"đã upscale ×{scale:.1f} để dễ thao tác (không ảnh hưởng "
-                       f"kết quả vì model luôn resize về {C.IMG_SIZE}×{C.IMG_SIZE}).")
         cropped = st_cropper(
-            display_image, realtime_update=True, box_color="#00FF00",
-            aspect_ratio=aspect_ratio, return_type="image", key=cropper_key,
+            image, realtime_update=True, box_color="#00FF00",
+            aspect_ratio=aspect_ratio, return_type="image", key="roi_cropper",
         )
     with col2:
         if cropped is None or min(cropped.size) < MIN_CROP_PX:
@@ -120,36 +107,8 @@ def _render_predict_panel(model, labels, image: Image.Image, top_k: int,
         _show_results(model, labels, cropped, top_k)
 
 
-def render_upload_tab(model, labels):
-    top_k, use_crop, aspect_ratio = _sidebar_predict_controls()
-    uploaded = st.file_uploader(
-        "Tải lên ảnh biển báo (JPG/PNG)",
-        type=["jpg", "jpeg", "png"],
-    )
-    if uploaded is None:
-        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
-        return
-    image = Image.open(uploaded).convert("RGB")
-    _render_predict_panel(model, labels, image, top_k, use_crop, aspect_ratio,
-                          cropper_key="roi_cropper_upload")
-
-
-def render_capture_tab(model, labels):
-    top_k, use_crop, aspect_ratio = _sidebar_predict_controls()
-    st.caption("Bấm nút bên dưới để chụp 1 ảnh từ webcam, sau đó kéo khung "
-               "xanh để chọn vùng biển báo.")
-    captured = st.camera_input("📷 Chụp ảnh biển báo")
-    if captured is None:
-        st.info("Hãy bấm nút chụp ảnh phía trên để bắt đầu.")
-        return
-    image = Image.open(captured).convert("RGB")
-    _render_predict_panel(model, labels, image, top_k, use_crop, aspect_ratio,
-                          cropper_key="roi_cropper_capture")
-
-
 def main():
-    st.title("🚦 CNN tự xây dựng — Phân loại biển báo giao thông")
-    st.caption("Đồ án cuối kỳ — thực nghiệm trên bộ GTSRB")
+    st.title("🚦 Phân loại biển báo giao thông")
 
     if not C.MODEL_PATH.exists():
         st.error(
@@ -159,17 +118,11 @@ def main():
         return
 
     model, labels = load_model_and_labels()
-    st.sidebar.write(f"**Số lớp:** {len(labels)}")
-    st.sidebar.write(f"**Kích thước ảnh:** {C.IMG_SIZE}×{C.IMG_SIZE}")
-    mode = st.sidebar.radio(
-        "Chế độ",
-        ["📁 Upload ảnh", "📷 Chụp ảnh từ webcam", "🎥 Camera realtime"],
-    )
+
+    mode = st.sidebar.radio("Chế độ", ["📁 Upload ảnh", "🎥 Camera realtime"])
 
     if mode == "🎥 Camera realtime":
         render_realtime_tab(model, labels)
-    elif mode == "📷 Chụp ảnh từ webcam":
-        render_capture_tab(model, labels)
     else:
         render_upload_tab(model, labels)
 

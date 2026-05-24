@@ -20,7 +20,7 @@ data/processed/
 data/gtsrb_raw/
 data/split_dataset/
 models/*.h5
-models/*.keras
+# models/*.keras
 models/checkpoints/
 *.zip
 *.tar.gz
