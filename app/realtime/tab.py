@@ -36,11 +36,19 @@ def render_realtime_tab(model, labels: list[str]) -> None:
     with st.sidebar:
         st.markdown("---")
         st.markdown("**Tham số realtime**")
-        roi_ratio = st.slider("Kích thước ROI)",
-                              0.30, 0.90, 0.50, 0.05)
-        threshold = st.slider("Ngưỡng confidence", 0.30, 0.95, 0.60, 0.05)
-        smooth_window = st.slider("Smoothing (số frame)", 1, 10, 5, 1)
-        #show_fps = st.toggle("Hiển thị FPS (debug)", value=False)
+        roi_ratio = st.slider(
+            "Kích thước ROI (so với cạnh ngắn)",
+            0.30, 0.90, 0.50, 0.05,
+            help="Tỷ lệ vùng vuông ở giữa khung hình so với cạnh ngắn của frame. "
+                 "Tăng giá trị nếu biển báo ở gần camera, giảm nếu biển báo ở xa.",
+        )
+        threshold = st.slider(
+            "Ngưỡng confidence",
+            0.30, 0.95, 0.60, 0.05,
+            help="Mức xác suất tối thiểu để hiển thị nhãn dự đoán. "
+                 "Dưới ngưỡng này hệ thống coi như không phát hiện biển báo.",
+        )
+        smooth_window = 8
 
     ctx = webrtc_streamer(
         key="sign-realtime",
@@ -82,7 +90,7 @@ def render_realtime_tab(model, labels: list[str]) -> None:
                      caption=f"{label} ({conf*100:.1f}%)",
                      use_container_width=True)
 
-    with st.expander("ℹ Lưu ý"):
+    with st.expander("Lưu ý"):
         st.markdown(
             "- Mỗi frame chỉ phân loại 1 biển báo trong khung ROI ở giữa. \n "
             "- Ảnh snapshot lưu tại `reports/snapshots/`."
