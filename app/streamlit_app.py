@@ -77,7 +77,9 @@ def _show_results(model, labels, pil_image: Image.Image, top_k: int) -> None:
         st.progress(prob, text=f"{prob*100:.2f}%")
 
 
-def render_upload_tab(model, labels):
+def _render_crop_and_predict(model, labels, image: Image.Image,
+                             cropper_key: str) -> None:
+    """Phần UI chung: crop ROI (tuỳ chọn) + hiển thị kết quả dự đoán."""
     top_k = st.sidebar.slider("Số kết quả hiển thị", 1, 5, 3)
     use_crop = st.sidebar.checkbox(
         "✂️ Crop ROI thủ công", value=True,
@@ -90,16 +92,6 @@ def render_upload_tab(model, labels):
         help="Biển báo thường vuông → giữ 1:1 cho ổn định.",
     )
     aspect_ratio = (1, 1) if aspect_choice == "Vuông 1:1" else None
-
-    uploaded = st.file_uploader(
-        "Tải lên ảnh biển báo (JPG/PNG)",
-        type=["jpg", "jpeg", "png"],
-    )
-    if uploaded is None:
-        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
-        return
-
-    image = Image.open(uploaded).convert("RGB")
 
     if not use_crop:
         col1, col2 = st.columns([1, 1])
@@ -115,23 +107,41 @@ def render_upload_tab(model, labels):
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown("🖱️ Kéo khung xanh để chọn vùng biển báo ")
-        # if display_image.size != image.size:
-        #     st.caption(f"Ảnh gốc `{image.size[0]}×{image.size[1]}` px → "
-        #                f"hiển thị `{display_image.size[0]}×{display_image.size[1]}` "
-        #                f"px cho dễ thao tác (không ảnh hưởng kết quả).")
         cropped = st_cropper(
             display_image, realtime_update=True, box_color="#00FF00",
-            aspect_ratio=aspect_ratio, return_type="image", key="roi_cropper",
+            aspect_ratio=aspect_ratio, return_type="image", key=cropper_key,
         )
     with col2:
         if cropped is None or min(cropped.size) < MIN_CROP_PX:
             st.warning(f"Khung crop quá nhỏ (<{MIN_CROP_PX}px). "
                        "Kéo khung lớn hơn để predict.")
             return
-        # st.markdown(f"**ROI:** `{cropped.size[0]}×{cropped.size[1]}` px "
-        #             f"→ resize `{C.IMG_SIZE}×{C.IMG_SIZE}`")
         st.image(cropped, use_container_width=True)
         _show_results(model, labels, cropped, top_k)
+
+
+def render_upload_tab(model, labels):
+    uploaded = st.file_uploader(
+        "Tải lên ảnh biển báo (JPG/PNG)",
+        type=["jpg", "jpeg", "png"],
+    )
+    if uploaded is None:
+        st.info("Hãy tải lên một ảnh biển báo để bắt đầu.")
+        return
+
+    image = Image.open(uploaded).convert("RGB")
+    _render_crop_and_predict(model, labels, image, cropper_key="roi_cropper")
+
+
+def render_camera_tab(model, labels):
+    st.caption("Bấm nút bên dưới để bật camera, rồi chụp 1 ảnh biển báo.")
+    snapshot = st.camera_input("Chụp ảnh biển báo")
+    if snapshot is None:
+        st.info("Hãy chụp một ảnh để bắt đầu dự đoán.")
+        return
+
+    image = Image.open(snapshot).convert("RGB")
+    _render_crop_and_predict(model, labels, image, cropper_key="camera_cropper")
 
 
 def main():
@@ -146,10 +156,15 @@ def main():
 
     model, labels = load_model_and_labels()
 
-    mode = st.sidebar.radio("Chế độ", ["📁 Upload ảnh", "🎥 Camera realtime"])
+    mode = st.sidebar.radio(
+        "Chế độ",
+        ["📁 Upload ảnh", "📷 Chụp ảnh", "🎥 Camera realtime"],
+    )
 
     if mode == "🎥 Camera realtime":
         render_realtime_tab(model, labels)
+    elif mode == "📷 Chụp ảnh":
+        render_camera_tab(model, labels)
     else:
         render_upload_tab(model, labels)
 
