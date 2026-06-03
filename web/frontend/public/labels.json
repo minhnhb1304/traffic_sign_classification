@@ -1,0 +1,303 @@
+[
+  {
+    "idx": 0,
+    "code": "GTSRB_00",
+    "name_en": "Speed limit (20km/h)",
+    "name_vi": "Giới hạn tốc độ (20km/h)",
+    "folder": "00_Speed_limit_20km_h"
+  },
+  {
+    "idx": 1,
+    "code": "GTSRB_01",
+    "name_en": "Speed limit (30km/h)",
+    "name_vi": "Giới hạn tốc độ (30km/h)",
+    "folder": "01_Speed_limit_30km_h"
+  },
+  {
+    "idx": 2,
+    "code": "GTSRB_02",
+    "name_en": "Speed limit (50km/h)",
+    "name_vi": "Giới hạn tốc độ (50km/h)",
+    "folder": "02_Speed_limit_50km_h"
+  },
+  {
+    "idx": 3,
+    "code": "GTSRB_03",
+    "name_en": "Speed limit (60km/h)",
+    "name_vi": "Giới hạn tốc độ (60km/h)",
+    "folder": "03_Speed_limit_60km_h"
+  },
+  {
+    "idx": 4,
+    "code": "GTSRB_04",
+    "name_en": "Speed limit (70km/h)",
+    "name_vi": "Giới hạn tốc độ (70km/h)",
+    "folder": "04_Speed_limit_70km_h"
+  },
+  {
+    "idx": 5,
+    "code": "GTSRB_05",
+    "name_en": "Speed limit (80km/h)",
+    "name_vi": "Giới hạn tốc độ (80km/h)",
+    "folder": "05_Speed_limit_80km_h"
+  },
+  {
+    "idx": 6,
+    "code": "GTSRB_06",
+    "name_en": "End of speed limit (80km/h)",
+    "name_vi": "Hết giới hạn tốc độ (80km/h)",
+    "folder": "06_End_of_speed_limit_80km_h"
+  },
+  {
+    "idx": 7,
+    "code": "GTSRB_07",
+    "name_en": "Speed limit (100km/h)",
+    "name_vi": "Giới hạn tốc độ (100km/h)",
+    "folder": "07_Speed_limit_100km_h"
+  },
+  {
+    "idx": 8,
+    "code": "GTSRB_08",
+    "name_en": "Speed limit (120km/h)",
+    "name_vi": "Giới hạn tốc độ (120km/h)",
+    "folder": "08_Speed_limit_120km_h"
+  },
+  {
+    "idx": 9,
+    "code": "GTSRB_09",
+    "name_en": "No passing",
+    "name_vi": "Cấm vượt",
+    "folder": "09_No_passing"
+  },
+  {
+    "idx": 10,
+    "code": "GTSRB_10",
+    "name_en": "No passing for vehicles over 3.5 metric tons",
+    "name_vi": "Cấm vượt với xe trên 3.5 tấn",
+    "folder": "10_No_passing_for_vehicles_over_3_5_metric_tons"
+  },
+  {
+    "idx": 11,
+    "code": "GTSRB_11",
+    "name_en": "Right-of-way at the next intersection",
+    "name_vi": "Quyền ưu tiên ở giao lộ kế tiếp",
+    "folder": "11_Right_of_way_at_the_next_intersection"
+  },
+  {
+    "idx": 12,
+    "code": "GTSRB_12",
+    "name_en": "Priority road",
+    "name_vi": "Đường ưu tiên",
+    "folder": "12_Priority_road"
+  },
+  {
+    "idx": 13,
+    "code": "GTSRB_13",
+    "name_en": "Yield",
+    "name_vi": "Nhường đường",
+    "folder": "13_Yield"
+  },
+  {
+    "idx": 14,
+    "code": "GTSRB_14",
+    "name_en": "Stop",
+    "name_vi": "Dừng lại",
+    "folder": "14_Stop"
+  },
+  {
+    "idx": 15,
+    "code": "GTSRB_15",
+    "name_en": "No vehicles",
+    "name_vi": "Cấm tất cả phương tiện",
+    "folder": "15_No_vehicles"
+  },
+  {
+    "idx": 16,
+    "code": "GTSRB_16",
+    "name_en": "Vehicles over 3.5 metric tons prohibited",
+    "name_vi": "Cấm xe trên 3.5 tấn",
+    "folder": "16_Vehicles_over_3_5_metric_tons_prohibited"
+  },
+  {
+    "idx": 17,
+    "code": "GTSRB_17",
+    "name_en": "No entry",
+    "name_vi": "Cấm vào",
+    "folder": "17_No_entry"
+  },
+  {
+    "idx": 18,
+    "code": "GTSRB_18",
+    "name_en": "General caution",
+    "name_vi": "Cảnh báo nguy hiểm chung",
+    "folder": "18_General_caution"
+  },
+  {
+    "idx": 19,
+    "code": "GTSRB_19",
+    "name_en": "Dangerous curve to the left",
+    "name_vi": "Khúc cua nguy hiểm bên trái",
+    "folder": "19_Dangerous_curve_to_the_left"
+  },
+  {
+    "idx": 20,
+    "code": "GTSRB_20",
+    "name_en": "Dangerous curve to the right",
+    "name_vi": "Khúc cua nguy hiểm bên phải",
+    "folder": "20_Dangerous_curve_to_the_right"
+  },
+  {
+    "idx": 21,
+    "code": "GTSRB_21",
+    "name_en": "Double curve",
+    "name_vi": "Khúc cua đôi",
+    "folder": "21_Double_curve"
+  },
+  {
+    "idx": 22,
+    "code": "GTSRB_22",
+    "name_en": "Bumpy road",
+    "name_vi": "Đường gồ ghề",
+    "folder": "22_Bumpy_road"
+  },
+  {
+    "idx": 23,
+    "code": "GTSRB_23",
+    "name_en": "Slippery road",
+    "name_vi": "Đường trơn trượt",
+    "folder": "23_Slippery_road"
+  },
+  {
+    "idx": 24,
+    "code": "GTSRB_24",
+    "name_en": "Road narrows on the right",
+    "name_vi": "Đường hẹp bên phải",
+    "folder": "24_Road_narrows_on_the_right"
+  },
+  {
+    "idx": 25,
+    "code": "GTSRB_25",
+    "name_en": "Road work",
+    "name_vi": "Công trường thi công",
+    "folder": "25_Road_work"
+  },
+  {
+    "idx": 26,
+    "code": "GTSRB_26",
+    "name_en": "Traffic signals",
+    "name_vi": "Đèn tín hiệu giao thông",
+    "folder": "26_Traffic_signals"
+  },
+  {
+    "idx": 27,
+    "code": "GTSRB_27",
+    "name_en": "Pedestrians",
+    "name_vi": "Người đi bộ",
+    "folder": "27_Pedestrians"
+  },
+  {
+    "idx": 28,
+    "code": "GTSRB_28",
+    "name_en": "Children crossing",
+    "name_vi": "Trẻ em qua đường",
+    "folder": "28_Children_crossing"
+  },
+  {
+    "idx": 29,
+    "code": "GTSRB_29",
+    "name_en": "Bicycles crossing",
+    "name_vi": "Xe đạp qua đường",
+    "folder": "29_Bicycles_crossing"
+  },
+  {
+    "idx": 30,
+    "code": "GTSRB_30",
+    "name_en": "Beware of ice/snow",
+    "name_vi": "Cẩn thận băng/tuyết",
+    "folder": "30_Beware_of_ice_snow"
+  },
+  {
+    "idx": 31,
+    "code": "GTSRB_31",
+    "name_en": "Wild animals crossing",
+    "name_vi": "Động vật hoang dã qua đường",
+    "folder": "31_Wild_animals_crossing"
+  },
+  {
+    "idx": 32,
+    "code": "GTSRB_32",
+    "name_en": "End of all speed and passing limits",
+    "name_vi": "Hết mọi giới hạn tốc độ và cấm vượt",
+    "folder": "32_End_of_all_speed_and_passing_limits"
+  },
+  {
+    "idx": 33,
+    "code": "GTSRB_33",
+    "name_en": "Turn right ahead",
+    "name_vi": "Rẽ phải phía trước",
+    "folder": "33_Turn_right_ahead"
+  },
+  {
+    "idx": 34,
+    "code": "GTSRB_34",
+    "name_en": "Turn left ahead",
+    "name_vi": "Rẽ trái phía trước",
+    "folder": "34_Turn_left_ahead"
+  },
+  {
+    "idx": 35,
+    "code": "GTSRB_35",
+    "name_en": "Ahead only",
+    "name_vi": "Chỉ được đi thẳng",
+    "folder": "35_Ahead_only"
+  },
+  {
+    "idx": 36,
+    "code": "GTSRB_36",
+    "name_en": "Go straight or right",
+    "name_vi": "Đi thẳng hoặc rẽ phải",
+    "folder": "36_Go_straight_or_right"
+  },
+  {
+    "idx": 37,
+    "code": "GTSRB_37",
+    "name_en": "Go straight or left",
+    "name_vi": "Đi thẳng hoặc rẽ trái",
+    "folder": "37_Go_straight_or_left"
+  },
+  {
+    "idx": 38,
+    "code": "GTSRB_38",
+    "name_en": "Keep right",
+    "name_vi": "Đi bên phải",
+    "folder": "38_Keep_right"
+  },
+  {
+    "idx": 39,
+    "code": "GTSRB_39",
+    "name_en": "Keep left",
+    "name_vi": "Đi bên trái",
+    "folder": "39_Keep_left"
+  },
+  {
+    "idx": 40,
+    "code": "GTSRB_40",
+    "name_en": "Roundabout mandatory",
+    "name_vi": "Bắt buộc đi vòng xuyến",
+    "folder": "40_Roundabout_mandatory"
+  },
+  {
+    "idx": 41,
+    "code": "GTSRB_41",
+    "name_en": "End of no passing",
+    "name_vi": "Hết đoạn cấm vượt",
+    "folder": "41_End_of_no_passing"
+  },
+  {
+    "idx": 42,
+    "code": "GTSRB_42",
+    "name_en": "End of no passing by vehicles over 3.5 metric tons",
+    "name_vi": "Hết đoạn cấm vượt với xe trên 3.5 tấn",
+    "folder": "42_End_of_no_passing_by_vehicles_over_3_5_metric_tons"
+  }
+]
