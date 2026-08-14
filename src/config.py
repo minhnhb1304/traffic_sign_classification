@@ -38,6 +38,12 @@ EARLY_STOPPING_PATIENCE = 12
 LR_REDUCE_PATIENCE = 3
 
 # ===== Model =====
+# GTSRB (43 lớp biển báo Đức — mặc định)
 MODEL_NAME = "custom_cnn_v1"
 MODEL_PATH = MODELS_DIR / f"{MODEL_NAME}.keras"
 LABELS_PATH = MODELS_DIR / "labels.json"
+
+# VN (biển báo Việt Nam — fine-tuned từ GTSRB)
+MODEL_NAME_VN = "custom_cnn_vn_v1"
+MODEL_PATH_VN = MODELS_DIR / f"{MODEL_NAME_VN}.keras"
+LABELS_PATH_VN = MODELS_DIR / "labels_vn.json"

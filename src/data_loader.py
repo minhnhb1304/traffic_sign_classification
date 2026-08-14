@@ -71,37 +71,44 @@ def make_tf_dataset(filepaths, labels, num_classes: int,
     return ds.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
 
-def load_class_metadata() -> list[dict]:
-    """Đọc labels.json (do prepare_data.py sinh ra)."""
-    if not C.LABELS_PATH.exists():
+def load_class_metadata(labels_path: Path | None = None) -> list[dict]:
+    """Đọc labels.json (hoặc labels_vn.json)."""
+    target_path = labels_path or C.LABELS_PATH
+    if not target_path.exists():
         raise FileNotFoundError(
-            f"Không tìm thấy {C.LABELS_PATH}. Hãy chạy `python -m src.prepare_data` trước."
+            f"Không tìm thấy {target_path}. Hãy kiểm tra thư mục models/."
         )
-    with open(C.LABELS_PATH, "r", encoding="utf-8") as f:
+    with open(target_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def get_display_names(class_folders: list[str], lang: str = "vi") -> list[str]:
+def get_display_names(class_folders: list[str], lang: str = "vi", labels_path: Path | None = None) -> list[str]:
     """Trả về tên hiển thị (tiếng Việt mặc định) theo thứ tự class_folders."""
-    meta = load_class_metadata()
+    meta = load_class_metadata(labels_path)
     folder_map = {m["folder"]: m for m in meta}
     key = "name_vi" if lang == "vi" else "name_en"
     return [folder_map.get(f, {}).get(key, f) for f in class_folders]
 
 
-def load_labels(lang: str = "vi") -> list[str]:
+def load_labels(lang: str = "vi", model_type: str = "gtsrb", labels_path: Path | None = None) -> list[str]:
     """Trả về list tên hiển thị theo thứ tự lớp của model.
 
-    Nguồn ưu tiên: `models/labels.json` (do prepare_data tạo ra) — không phụ thuộc
-    vào `data/processed/train/` còn tồn tại ở local hay không.
-
-    Thứ tự lớp = sort theo `folder` (folder bắt đầu bằng idx 2 chữ số nên
-    sort theo folder tương đương sort theo idx, đúng với thứ tự khi train).
+    model_type: 'gtsrb' (43 lớp GTSRB) hoặc 'vn' (biển báo Việt Nam)
+    Nguồn ưu tiên: `models/labels.json` hoặc `models/labels_vn.json`.
     """
-    if C.LABELS_PATH.exists():
-        meta = load_class_metadata()
-        meta_sorted = sorted(meta, key=lambda m: m["folder"])
+    if labels_path is not None:
+        target_path = labels_path
+    elif model_type.lower() in ("vn", "vietnam"):
+        target_path = C.LABELS_PATH_VN
+    else:
+        target_path = C.LABELS_PATH
+
+    if target_path.exists():
+        meta = load_class_metadata(target_path)
+        meta_sorted = sorted(meta, key=lambda m: m.get("folder", ""))
         key = "name_vi" if lang == "vi" else "name_en"
-        return [m.get(key, m["folder"]) for m in meta_sorted]
+        return [m.get(key) or m.get("qcvn_code") or m.get("folder", "") for m in meta_sorted]
+
     class_folders = list_class_folders(C.PROCESSED_TRAIN_DIR)
     return get_display_names(class_folders, lang=lang)
+

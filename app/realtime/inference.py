@@ -13,11 +13,17 @@ from src.data_loader import load_labels
 from src.preprocessing import preprocess_single_image
 
 
-def load_model_and_labels():
+def load_model_and_labels(model_type: str = "gtsrb"):
     """Load Keras model + labels (gọi 1 lần, nên cache bằng @st.cache_resource)."""
-    model = tf.keras.models.load_model(C.MODEL_PATH)
-    labels = load_labels()
+    if model_type.lower() in ("vn", "vietnam"):
+        model_path = C.MODEL_PATH_VN
+    else:
+        model_path = C.MODEL_PATH
+
+    model = tf.keras.models.load_model(model_path)
+    labels = load_labels(model_type=model_type)
     return model, labels
+
 
 
 def predict_array(model, image_rgb: np.ndarray, top_k: int = 3) -> list[tuple[int, float]]:

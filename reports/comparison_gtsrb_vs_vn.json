@@ -1,0 +1,14 @@
+{
+  "baseline_gtsrb_on_vn_test": {
+    "note": "Model gốc 43 lớp, không thể tính accuracy trực tiếp do label space khác. Đo confidence trung bình của argmax → thấp = model 'không chắc chắn' khi gặp biển VN.",
+    "mean_max_confidence": 0.5228,
+    "num_test_images": 1712
+  },
+  "finetuned_on_vn_test": {
+    "accuracy": 0.8925,
+    "top3_accuracy": 0.9778,
+    "loss": 0.3308,
+    "num_classes": 56,
+    "num_test_images": 1712
+  }
+}

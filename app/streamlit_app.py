@@ -52,9 +52,19 @@ def _fit_for_cropper(img: Image.Image,
 
 
 @st.cache_resource
-def load_model_and_labels():
-    model = tf.keras.models.load_model(C.MODEL_PATH)
-    labels = load_labels()
+def load_model_and_labels(model_type: str = "vn"):
+    if model_type == "vn":
+        model_path = C.MODEL_PATH_VN
+        if not model_path.exists():
+            raise FileNotFoundError(f"Chưa tìm thấy model VN tại {model_path}")
+        model = tf.keras.models.load_model(model_path)
+        labels = load_labels(model_type="vn")
+    else:
+        model_path = C.MODEL_PATH
+        if not model_path.exists():
+            raise FileNotFoundError(f"Chưa tìm thấy model GTSRB tại {model_path}")
+        model = tf.keras.models.load_model(model_path)
+        labels = load_labels(model_type="gtsrb")
     return model, labels
 
 
@@ -147,15 +157,29 @@ def render_camera_tab(model, labels):
 def main():
     st.title("🚦 Phân loại biển báo giao thông")
 
-    if not C.MODEL_PATH.exists():
-        st.error(
-            f"Chưa tìm thấy model tại {C.MODEL_PATH}. "
-            "Hãy chạy `python -m src.train` trước."
-        )
+    # Sidebar: Lựa chọn Model
+    st.sidebar.markdown("### ⚙️ Cấu hình Mô hình")
+    model_options = {
+        "🇻🇳 Biển báo Việt Nam (56 lớp)": "vn",
+        "🇩🇪 GTSRB Quốc tế (43 lớp)": "gtsrb",
+    }
+    selected_label = st.sidebar.selectbox(
+        "Chọn tập dữ liệu / Model",
+        list(model_options.keys()),
+        index=0,
+        help="Chuyển đổi giữa mô hình biển báo Việt Nam và mô hình quốc tế GTSRB"
+    )
+    model_type = model_options[selected_label]
+
+    try:
+        model, labels = load_model_and_labels(model_type)
+        st.sidebar.success(f"✅ Đang dùng: **{len(labels)} lớp** ({model_type.upper()})")
+    except Exception as e:
+        st.error(f"Lỗi nạp model {model_type.upper()}: {e}")
         return
 
-    model, labels = load_model_and_labels()
-
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🧭 Chế độ thao tác")
     mode = st.sidebar.radio(
         "Chế độ",
         ["📁 Upload ảnh", "📷 Chụp ảnh", "🎥 Camera realtime"],
@@ -171,3 +195,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
