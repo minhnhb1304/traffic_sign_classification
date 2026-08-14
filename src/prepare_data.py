@@ -100,18 +100,40 @@ def parse_csv(csv_path: Path) -> list[dict]:
 
 
 def stratified_train_val_split(rows: list[dict], val_ratio: float, seed: int):
-    """Tách val từ train theo từng lớp (stratified)."""
+    """Split validation from training data using a stratified approach without data leakage.
+    
+    GTSRB images are extracted from video tracks. Consecutive frames (e.g., 00000_00000.ppm 
+    to 00000_00029.ppm) belong to the exact same physical traffic sign. Randomly splitting 
+    these images causes severe data leakage. We must group them by their track ID (the prefix) 
+    before splitting.
+    """
     by_class: dict[int, list[dict]] = defaultdict(list)
     for r in rows:
         by_class[r["class_id"]].append(r)
+        
     rng = random.Random(seed)
     train, val = [], []
+    
     for cls, items in by_class.items():
-        items = items[:]
-        rng.shuffle(items)
-        n_val = max(1, int(len(items) * val_ratio))
-        val.extend(items[:n_val])
-        train.extend(items[n_val:])
+        # Group by physical track ID (prefix before the underscore)
+        tracks: dict[str, list[dict]] = defaultdict(list)
+        for item in items:
+            filename = Path(item["path"]).name
+            track_id = filename.split("_")[0] if "_" in filename else filename
+            tracks[track_id].append(item)
+            
+        track_ids = list(tracks.keys())
+        rng.shuffle(track_ids)
+        
+        n_val_tracks = max(1, int(len(track_ids) * val_ratio))
+        val_track_ids = set(track_ids[:n_val_tracks])
+        
+        for track_id, track_items in tracks.items():
+            if track_id in val_track_ids:
+                val.extend(track_items)
+            else:
+                train.extend(track_items)
+                
     return train, val
 
 
