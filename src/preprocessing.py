@@ -1,4 +1,4 @@
-"""Tiền xử lý ảnh và data augmentation cho biển báo VN."""
+"""Image preprocessing and data augmentation for traffic sign classification."""
 import math
 
 import tensorflow as tf
@@ -6,7 +6,7 @@ import tensorflow as tf
 
 def _random_affine(img: tf.Tensor, max_deg: float = 10.0,
                    max_trans: float = 0.05, max_zoom: float = 0.08) -> tf.Tensor:
-    """Xoay/zoom/dịch ngẫu nhiên 1 ảnh rank-3 bằng tf.raw_ops.ImageProjectiveTransformV3."""
+    """Randomly rotate/zoom/translate a rank-3 image tensor using tf.raw_ops.ImageProjectiveTransformV3."""
     h = tf.cast(tf.shape(img)[0], tf.float32)
     w = tf.cast(tf.shape(img)[1], tf.float32)
 
@@ -38,10 +38,10 @@ def _random_affine(img: tf.Tensor, max_deg: float = 10.0,
 
 
 def augment(img: tf.Tensor) -> tf.Tensor:
-    """Augmentation cho 1 ảnh rank-3 [0,1].
+    """Augments a single rank-3 [0,1] image.
 
-    Lưu ý: KHÔNG flip ngang (biển có hướng trái/phải).
-    Dùng tf.image.* + tf.raw_ops thuần để chắc chắn random hoạt động trong tf.data.
+    Note: DO NOT flip horizontally (directional signs like 'Turn Left' would break).
+    Uses pure tf.image.* and tf.raw_ops to ensure randomness works well inside tf.data.
     """
     img = _random_affine(img, max_deg=12.0, max_trans=0.06, max_zoom=0.10)
     img = tf.image.random_brightness(img, max_delta=0.12)
@@ -52,12 +52,12 @@ def augment(img: tf.Tensor) -> tf.Tensor:
 
 
 def build_augmentation_pipeline():
-    """Trả về callable augment(img)->img để dùng trong tf.data.Dataset.map."""
+    """Returns a callable augment(img)->img for use in tf.data.Dataset.map."""
     return augment
 
 
 def preprocess_single_image(img: tf.Tensor, img_size: int) -> tf.Tensor:
-    """Tiền xử lý 1 ảnh đơn lẻ (dùng cho inference)."""
+    """Preprocess a single image (used for inference)."""
     img = tf.image.resize(img, [img_size, img_size])
     img = tf.cast(img, tf.float32) / 255.0
     return img

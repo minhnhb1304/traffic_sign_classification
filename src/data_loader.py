@@ -1,4 +1,4 @@
-"""Load dataset biển báo VN đã crop từ data/processed/{train,val,test}."""
+"""Loads the cropped traffic sign dataset from data/processed/{train,val,test}."""
 from __future__ import annotations
 
 import json
@@ -11,19 +11,19 @@ from . import config as C
 
 
 def list_class_folders(split_dir: Path) -> list[str]:
-    """Lấy danh sách folder lớp (đã sort) trong 1 split directory."""
+    """Gets a sorted list of class folders in a split directory."""
     if not split_dir.exists():
         raise FileNotFoundError(
-            f"Không tìm thấy {split_dir}. Hãy chạy `python -m src.prepare_data` trước."
+            f"Could not find {split_dir}. Please run `python -m src.prepare_data` first."
         )
     folders = sorted([p.name for p in split_dir.iterdir() if p.is_dir()])
     if not folders:
-        raise FileNotFoundError(f"{split_dir} không có thư mục con nào.")
+        raise FileNotFoundError(f"{split_dir} has no subdirectories.")
     return folders
 
 
 def gather_filepaths(split_dir: Path, class_folders: list[str]):
-    """Quét tất cả ảnh trong split_dir, gán nhãn theo index của class_folders."""
+    """Scans all images in split_dir, assigning labels based on the index of class_folders."""
     folder_to_idx = {name: i for i, name in enumerate(class_folders)}
     filepaths, labels = [], []
     for cname in class_folders:
@@ -38,7 +38,7 @@ def gather_filepaths(split_dir: Path, class_folders: list[str]):
 
 
 def load_train_val_test():
-    """Trả về (train, val, test) dưới dạng (filepaths, labels) và class_folders."""
+    """Returns (train, val, test) as (filepaths, labels) and the list of class_folders."""
     class_folders = list_class_folders(C.PROCESSED_TRAIN_DIR)
     train = gather_filepaths(C.PROCESSED_TRAIN_DIR, class_folders)
     val = gather_filepaths(C.PROCESSED_VAL_DIR, class_folders)
@@ -59,7 +59,7 @@ def make_tf_dataset(filepaths, labels, num_classes: int,
                     img_size: int = C.IMG_SIZE,
                     shuffle: bool = False,
                     augment_fn=None) -> tf.data.Dataset:
-    """Tạo tf.data.Dataset từ list filepaths + labels."""
+    """Creates a tf.data.Dataset from a list of filepaths and labels."""
     ds = tf.data.Dataset.from_tensor_slices((filepaths, labels))
     if shuffle:
         ds = ds.shuffle(buffer_size=min(len(filepaths), 2048), seed=C.SEED)
@@ -72,29 +72,29 @@ def make_tf_dataset(filepaths, labels, num_classes: int,
 
 
 def load_class_metadata(labels_path: Path | None = None) -> list[dict]:
-    """Đọc labels.json (hoặc labels_vn.json)."""
+    """Reads labels.json (or labels_vn.json)."""
     target_path = labels_path or C.LABELS_PATH
     if not target_path.exists():
         raise FileNotFoundError(
-            f"Không tìm thấy {target_path}. Hãy kiểm tra thư mục models/."
+            f"Could not find {target_path}. Please check the models/ directory."
         )
     with open(target_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def get_display_names(class_folders: list[str], lang: str = "vi", labels_path: Path | None = None) -> list[str]:
-    """Trả về tên hiển thị (tiếng Việt mặc định) theo thứ tự class_folders."""
+def get_display_names(class_folders: list[str], lang: str = "en", labels_path: Path | None = None) -> list[str]:
+    """Returns display names (default English) ordered by class_folders."""
     meta = load_class_metadata(labels_path)
     folder_map = {m["folder"]: m for m in meta}
     key = "name_vi" if lang == "vi" else "name_en"
     return [folder_map.get(f, {}).get(key, f) for f in class_folders]
 
 
-def load_labels(lang: str = "vi", model_type: str = "gtsrb", labels_path: Path | None = None) -> list[str]:
-    """Trả về list tên hiển thị theo thứ tự lớp của model.
+def load_labels(lang: str = "en", model_type: str = "gtsrb", labels_path: Path | None = None) -> list[str]:
+    """Returns a list of display names ordered by the model's class index.
 
-    model_type: 'gtsrb' (43 lớp GTSRB) hoặc 'vn' (biển báo Việt Nam)
-    Nguồn ưu tiên: `models/labels.json` hoặc `models/labels_vn.json`.
+    model_type: 'gtsrb' (43 GTSRB classes) or 'vn' (Vietnam traffic signs)
+    Priority source: `models/labels.json` or `models/labels_vn.json`.
     """
     if labels_path is not None:
         target_path = labels_path

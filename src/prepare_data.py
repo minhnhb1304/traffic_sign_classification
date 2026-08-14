@@ -1,17 +1,17 @@
-"""Tiền xử lý GTSRB (Kaggle format) -> dataset classification đã crop.
+"""Preprocess GTSRB (Kaggle format) -> cropped classification dataset.
 
-Đầu vào (1 trong 2 nguồn):
-  - File zip Kaggle (mặc định: GTSRB.zip ở root) — sẽ giải nén vào data/gtsrb_raw/
-  - Thư mục đã giải nén chứa Train/, Test/, Train.csv, Test.csv
+Inputs (1 of 2 sources):
+  - Kaggle zip file (default: GTSRB.zip at root) — will extract to data/gtsrb_raw/
+  - Pre-extracted folder containing Train/, Test/, Train.csv, Test.csv
 
-Đầu ra:
+Outputs:
   data/processed/{train,val,test}/<class_folder>/<basename>.png
-  models/labels.json            (metadata 43 lớp, theo thứ tự ClassId)
+  models/labels.json            (43 classes metadata, ordered by ClassId)
   reports/prepare_data_summary.json
 
-Cách dùng:
-    python -m src.prepare_data                          # dùng GTSRB.zip ở root
-    python -m src.prepare_data --raw data/gtsrb_raw     # dùng folder đã giải nén
+Usage:
+    python -m src.prepare_data                          # uses GTSRB.zip at root
+    python -m src.prepare_data --raw data/gtsrb_raw     # uses extracted folder
     python -m src.prepare_data --zip path/to/GTSRB.zip
 """
 from __future__ import annotations
@@ -38,7 +38,7 @@ NUM_CLASSES = 43
 
 
 def slugify(text: str) -> str:
-    """Chuyển tên lớp sang chuỗi an toàn cho tên thư mục (ASCII, [a-zA-Z0-9_])."""
+    """Converts class names to a safe directory name (ASCII, [a-zA-Z0-9_])."""
     nfkd = unicodedata.normalize("NFD", text)
     ascii_only = nfkd.encode("ascii", "ignore").decode()
     safe = re.sub(r"[^a-zA-Z0-9]+", "_", ascii_only).strip("_")
@@ -50,12 +50,12 @@ def read_lines(path: Path) -> list[str]:
 
 
 def load_class_metadata() -> list[dict]:
-    """Đọc 3 file classes*.txt cho 43 lớp GTSRB, trả về list dict theo idx."""
+    """Reads 3 classes*.txt files for 43 GTSRB classes, returns list of dicts ordered by idx."""
     codes = read_lines(C.CLASSES_FILE)
     names_en = read_lines(C.CLASSES_EN_FILE)
     names_vi = read_lines(C.CLASSES_VIE_FILE)
     assert len(codes) == len(names_en) == len(names_vi) == NUM_CLASSES, (
-        f"Yêu cầu {NUM_CLASSES} dòng/file, thực tế: "
+        f"Requires {NUM_CLASSES} lines/file, actual: "
         f"{len(codes)} codes / {len(names_en)} EN / {len(names_vi)} VI"
     )
     classes = []
@@ -67,25 +67,25 @@ def load_class_metadata() -> list[dict]:
 
 
 def ensure_extracted(zip_path: Path | None, raw_dir: Path) -> Path:
-    """Đảm bảo có thư mục raw chứa Train/, Test/, Train.csv, Test.csv."""
+    """Ensures raw directory has Train/, Test/, Train.csv, Test.csv."""
     needed = ["Train", "Test", "Train.csv", "Test.csv"]
     if all((raw_dir / n).exists() for n in needed):
-        print(f">>> Đã có dataset giải nén tại: {raw_dir}")
+        print(f">>> Found extracted dataset at: {raw_dir}")
         return raw_dir
     if zip_path is None or not zip_path.exists():
         raise FileNotFoundError(
-            f"Không tìm thấy {raw_dir} hoặc zip {zip_path}. "
-            "Hãy tải GTSRB.zip về root hoặc truyền --zip / --raw."
+            f"Could not find {raw_dir} or zip {zip_path}. "
+            "Please download GTSRB.zip to root or pass --zip / --raw."
         )
     raw_dir.mkdir(parents=True, exist_ok=True)
-    print(f">>> Giải nén {zip_path} -> {raw_dir} (~600MB, mất vài phút)...")
+    print(f">>> Extracting {zip_path} -> {raw_dir} (~600MB, takes a few minutes)...")
     with zipfile.ZipFile(zip_path) as z:
         z.extractall(raw_dir)
     return raw_dir
 
 
 def parse_csv(csv_path: Path) -> list[dict]:
-    """Đọc Train.csv hoặc Test.csv. Trả về list dict có ClassId (int), Path, Roi.*"""
+    """Parses Train.csv or Test.csv. Returns list of dicts with ClassId, Path, Roi.*"""
     rows = []
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
@@ -138,7 +138,7 @@ def stratified_train_val_split(rows: list[dict], val_ratio: float, seed: int):
 
 
 def crop_with_roi(img: Image.Image, x1: int, y1: int, x2: int, y2: int) -> Image.Image:
-    """Crop bbox tuyệt đối kèm padding 5%."""
+    """Crop absolute bbox with 5% padding."""
     W, H = img.size
     pw = int((x2 - x1) * PADDING_RATIO)
     ph = int((y2 - y1) * PADDING_RATIO)
@@ -171,7 +171,7 @@ def process_split(rows: list[dict], split_name: str, raw_dir: Path,
 
 
 def clean_processed_dir() -> None:
-    """Xóa data/processed/{train,val,test} nếu đã tồn tại để tránh trộn dữ liệu cũ."""
+    """Removes data/processed/{train,val,test} if they exist to prevent mixing with old data."""
     for split in ("train", "val", "test"):
         d = C.PROCESSED_DIR / split
         if d.exists():
@@ -181,26 +181,26 @@ def clean_processed_dir() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--zip", type=Path, default=C.GTSRB_ZIP_PATH,
-                        help="Đường dẫn GTSRB.zip (mặc định: <root>/GTSRB.zip)")
+                        help="Path to GTSRB.zip (default: <root>/GTSRB.zip)")
     parser.add_argument("--raw", type=Path, default=C.GTSRB_RAW_DIR,
-                        help="Đường dẫn folder đã giải nén (mặc định: data/gtsrb_raw/)")
+                        help="Path to extracted raw folder (default: data/gtsrb_raw/)")
     args = parser.parse_args()
 
     classes = load_class_metadata()
-    print(f">>> Số lớp: {len(classes)}")
+    print(f">>> Total classes: {len(classes)}")
 
     raw_dir = ensure_extracted(args.zip, args.raw)
 
-    print(">>> Đọc Train.csv & Test.csv...")
+    print(">>> Parsing Train.csv & Test.csv...")
     train_rows = parse_csv(raw_dir / "Train.csv")
     test_rows = parse_csv(raw_dir / "Test.csv")
-    print(f"    Train+Val: {len(train_rows)} ảnh | Test: {len(test_rows)} ảnh")
+    print(f"    Train+Val: {len(train_rows)} images | Test: {len(test_rows)} images")
 
     train_split, val_split = stratified_train_val_split(
         train_rows, VAL_RATIO_FROM_TRAIN, C.SEED)
-    print(f"    Sau stratified split: train={len(train_split)} val={len(val_split)}")
+    print(f"    After stratified split: train={len(train_split)} val={len(val_split)}")
 
-    print(">>> Dọn data/processed/ cũ...")
+    print(">>> Cleaning old data/processed/...")
     clean_processed_dir()
 
     summary = {}
@@ -209,16 +209,16 @@ def main() -> None:
 
     with open(C.LABELS_PATH, "w", encoding="utf-8") as f:
         json.dump(classes, f, ensure_ascii=False, indent=2)
-    print(f">>> Đã lưu metadata: {C.LABELS_PATH}")
+    print(f">>> Saved metadata to: {C.LABELS_PATH}")
 
-    print("\n=== Tổng kết ===")
+    print("\n=== Summary ===")
     for split, info in summary.items():
-        print(f"  {split:5s}: {info['total']} ảnh (skipped: {info['skipped']})")
+        print(f"  {split:5s}: {info['total']} images (skipped: {info['skipped']})")
 
     out_summary = C.REPORTS_DIR / "prepare_data_summary.json"
     with open(out_summary, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
-    print(f">>> Tóm tắt chi tiết: {out_summary}")
+    print(f">>> Detailed summary saved to: {out_summary}")
 
 
 if __name__ == "__main__":

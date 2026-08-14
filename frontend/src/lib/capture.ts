@@ -1,6 +1,9 @@
 import { computeCenterRoi } from './roi'
 import type { Roi } from './roi'
 
+// Singleton offscreen canvas to prevent heavy Garbage Collection churn during 8fps realtime loops.
+let _offscreenCanvas: HTMLCanvasElement | null = null
+
 /**
  * Crop the center-square ROI of a video/canvas/image into a fresh canvas at
  * the ROI's native resolution. Returns the canvas plus the ROI used, so the
@@ -13,10 +16,19 @@ export function cropRoiToCanvas(
   ratio: number,
 ): { canvas: HTMLCanvasElement; roi: Roi } {
   const roi = computeCenterRoi(height, width, ratio)
-  const canvas = document.createElement('canvas')
-  canvas.width = roi.side
-  canvas.height = roi.side
-  const ctx = canvas.getContext('2d')!
+  
+  if (!_offscreenCanvas) {
+    _offscreenCanvas = document.createElement('canvas')
+  }
+  const canvas = _offscreenCanvas
+  
+  if (canvas.width !== roi.side || canvas.height !== roi.side) {
+    canvas.width = roi.side
+    canvas.height = roi.side
+  }
+  
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(
     source,
     roi.x0,

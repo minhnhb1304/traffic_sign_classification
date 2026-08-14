@@ -1,6 +1,6 @@
-"""Đánh giá model: classification report + confusion matrix.
+"""Evaluates the model and generates a classification report and confusion matrix.
 
-Cách dùng:
+Usage:
     python -m src.evaluate
 """
 from __future__ import annotations
@@ -33,22 +33,22 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: list[str], out_path) -> N
 
 
 def main() -> None:
-    print(">>> Load model và metadata lớp...")
+    print(">>> Loading model and class metadata...")
     model = tf.keras.models.load_model(C.MODEL_PATH)
     class_folders = list_class_folders(C.PROCESSED_TRAIN_DIR)
-    class_names = get_display_names(class_folders, lang="vi")
+    class_names = get_display_names(class_folders, lang="en")
     num_classes = len(class_folders)
 
-    print(">>> Load test set từ data/processed/test/...")
+    print(">>> Loading test set from data/processed/test/...")
     x_te, y_te = gather_filepaths(C.PROCESSED_TEST_DIR, class_folders)
     test_ds = make_tf_dataset(x_te, y_te, num_classes)
 
-    print(">>> Dự đoán...")
+    print(">>> Predicting...")
     y_true = y_te
     y_prob = model.predict(test_ds, verbose=1)
     y_pred = np.argmax(y_prob, axis=1)
 
-    print(">>> Classification report...")
+    print(">>> Generating classification report...")
     report = classification_report(
         y_true, y_pred, target_names=class_names, digits=4, output_dict=True,
     )
@@ -61,10 +61,10 @@ def main() -> None:
     with open(C.REPORTS_DIR / "classification_report.txt", "w", encoding="utf-8") as f:
         f.write(text_report)
 
-    print(">>> Confusion matrix...")
+    print(">>> Generating confusion matrix...")
     cm = confusion_matrix(y_true, y_pred)
     plot_confusion_matrix(cm, class_names, C.FIGURES_DIR / "confusion_matrix.png")
-    print(f">>> Lưu kết quả tại: {C.REPORTS_DIR}")
+    print(f">>> Results saved to: {C.REPORTS_DIR}")
 
 
 if __name__ == "__main__":

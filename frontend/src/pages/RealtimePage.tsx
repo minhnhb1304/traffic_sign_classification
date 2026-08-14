@@ -112,7 +112,9 @@ export function RealtimePage() {
         )}
       </div>
 
-      <ControlsSidebar value={controls} onChange={setControls} />
+      {React.useMemo(() => (
+        <ControlsSidebar value={controls} onChange={setControls} />
+      ), [controls])}
     </div>
   )
 }

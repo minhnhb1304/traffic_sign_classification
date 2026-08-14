@@ -1,6 +1,6 @@
-"""Script huấn luyện CNN tự xây cho dataset biển báo VN.
+"""Training script for the custom CNN on traffic sign datasets.
 
-Cách dùng:
+Usage:
     python -m src.train
 """
 import json
@@ -37,11 +37,11 @@ def get_callbacks() -> list:
 
 def compute_class_weights(y_train: np.ndarray, num_classes: int,
                           max_weight: float = 2.0) -> dict:
-    """Trọng số cân bằng cho các lớp: weight_i = N / (K * count_i), cap ở max_weight.
+    """Balanced class weights: weight_i = N / (K * count_i), capped at max_weight.
 
-    GTSRB cân bằng vừa phải (210–2250 ảnh/lớp, tỉ lệ ~1:11). Cap thấp (2.0) tránh
-    over-prediction các lớp ít sample như từng thấy ở lần train đầu (Bicycles
-    crossing precision 0.28, Turn left ahead 0.40).
+    GTSRB is moderately imbalanced (210-2250 images/class, ratio ~1:11).
+    A low cap (2.0) avoids over-predicting minority classes (e.g., as seen in early
+    experiments with 'Bicycles crossing' precision 0.28, 'Turn left ahead' 0.40).
     """
     counts = Counter(int(y) for y in y_train)
     total = sum(counts.values())
@@ -63,24 +63,24 @@ def plot_history(history, out_path: Path) -> None:
 
 
 def main() -> None:
-    print(">>> Bước 1: Load dataset đã crop (data/processed/)...")
+    print(">>> Step 1: Loading cropped dataset (data/processed/)...")
     (x_tr, y_tr), (x_val, y_val), (x_te, y_te), class_folders = load_train_val_test()
     num_classes = len(class_folders)
-    print(f"    Số lớp: {num_classes}")
+    print(f"    Total classes: {num_classes}")
     print(f"    Train: {len(x_tr)} | Val: {len(x_val)} | Test: {len(x_te)}")
 
-    print(">>> Bước 2: Tạo tf.data.Dataset...")
+    print(">>> Step 2: Creating tf.data.Dataset pipelines...")
     aug = build_augmentation_pipeline()
     train_ds = make_tf_dataset(x_tr, y_tr, num_classes, shuffle=True, augment_fn=aug)
     val_ds = make_tf_dataset(x_val, y_val, num_classes)
     test_ds = make_tf_dataset(x_te, y_te, num_classes)
 
-    print(">>> Bước 3: Xây và compile model...")
+    print(">>> Step 3: Building and compiling model...")
     model = build_cnn(num_classes=num_classes)
     model = compile_model(model)
     model.summary()
 
-    print(">>> Bước 4: Huấn luyện...")
+    print(">>> Step 4: Training...")
     class_weight = compute_class_weights(y_tr, num_classes)
     print(f"    Class weights: min={min(class_weight.values()):.2f}, "
           f"max={max(class_weight.values()):.2f}")
@@ -90,14 +90,14 @@ def main() -> None:
         class_weight=class_weight, verbose=1,
     )
 
-    print(">>> Bước 5: Đánh giá trên test set...")
+    print(">>> Step 5: Evaluating on test set...")
     test_metrics = model.evaluate(test_ds, return_dict=True, verbose=1)
     print(f"    Test metrics: {test_metrics}")
 
     with open(C.REPORTS_DIR / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(test_metrics, f, ensure_ascii=False, indent=2)
     plot_history(history, C.FIGURES_DIR / "training_curves.png")
-    print(f">>> Hoàn tất. Model lưu tại: {C.MODEL_PATH}")
+    print(f">>> Complete. Model saved at: {C.MODEL_PATH}")
 
 
 if __name__ == "__main__":
