@@ -26,10 +26,13 @@ export async function predictProba(
 ): Promise<Float32Array> {
   const input = toModelTensor(src)
   const out = model.predict(input) as tf.Tensor // [1,43]
-  const data = (await out.data()) as Float32Array
-  input.dispose()
-  out.dispose()
-  return data
+  try {
+    const data = (await out.data()) as Float32Array
+    return data
+  } finally {
+    input.dispose()
+    out.dispose()
+  }
 }
 
 export interface Pred {

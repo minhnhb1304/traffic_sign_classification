@@ -40,3 +40,12 @@ export async function loadModel(): Promise<tf.LayersModel> {
 export function activeBackend(): string {
   return tf.getBackend()
 }
+
+/** Dispose current model to force reload when switching model types. */
+export function disposeModel(): void {
+  if (_model) {
+    _model.dispose()
+    _model = null
+  }
+  _loading = null
+}

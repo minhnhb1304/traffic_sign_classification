@@ -40,5 +40,10 @@ export const displayName = (l: Label, lang: Lang): string => {
   return l.name_en || l.qcvn_code || l.folder
 }
 
+export function disposeLabels(): void {
+  _labels = null
+  _loading = null
+}
+
 /** Label shown when confidence is below the detection threshold. */
 export const NOT_DETECTED = '— không phát hiện —'

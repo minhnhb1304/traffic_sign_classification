@@ -54,8 +54,6 @@ export function AppShell() {
               value={modelType}
               onChange={(e) => {
                 setModelType(e.target.value as 'gtsrb' | 'vn')
-                // Reload window to re-initialize TFJS with the new model
-                window.location.reload()
               }}
             >
               <option value="gtsrb">🇩🇪 GTSRB (43 Lớp)</option>
