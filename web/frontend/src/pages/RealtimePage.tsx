@@ -76,7 +76,7 @@ export function RealtimePage() {
     <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Nhận diện thời gian thực</h1>
+          <h1 className="text-2xl font-bold">Camera real time</h1>
           <ModelStatusBadge
             loading={loading}
             error={error}

@@ -6,7 +6,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 const NAV = [
   { to: '/', label: 'Tải ảnh', icon: Upload, end: true },
   { to: '/snapshot', label: 'Chụp ảnh', icon: Camera, end: false },
-  { to: '/realtime', label: 'Thời gian thực', icon: Video, end: false },
+  { to: '/realtime', label: 'Camera real time', icon: Video, end: false },
 ]
 
 /** Global layout: sticky header with nav + theme/lang toggles, routed body. */
