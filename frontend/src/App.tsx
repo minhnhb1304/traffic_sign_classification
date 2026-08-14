@@ -1,5 +1,6 @@
 import { createHashRouter, RouterProvider } from 'react-router-dom'
 import { LanguageProvider } from '@/hooks/useLanguage'
+import { ModelTypeProvider } from '@/hooks/useModelType'
 import { AppShell } from '@/components/AppShell'
 import { UploadPage } from '@/pages/UploadPage'
 import { SnapshotPage } from '@/pages/SnapshotPage'
@@ -20,7 +21,9 @@ const router = createHashRouter([
 function App() {
   return (
     <LanguageProvider>
-      <RouterProvider router={router} />
+      <ModelTypeProvider>
+        <RouterProvider router={router} />
+      </ModelTypeProvider>
     </LanguageProvider>
   )
 }

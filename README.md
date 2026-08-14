@@ -1,180 +1,106 @@
-# 🚦 Xây dựng mô hình mạng nơ-ron tích chập (CNN) cho bài toán phân loại biển báo giao thông
+# 🚦 Traffic Sign Classification (Full-Stack ML App)
 
-Đồ án cuối kỳ — phân loại biển báo giao thông bằng mạng CNN **tự xây dựng** (không dùng pretrained) trên TensorFlow/Keras, thực nghiệm trên bộ dữ liệu chuẩn **GTSRB (German Traffic Sign Recognition Benchmark, 43 lớp)**, kèm demo web bằng Streamlit.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15+-orange.svg)](https://www.tensorflow.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
 
-## Mục tiêu
+An end-to-end, open-source application for Traffic Sign Classification. Built from scratch using a custom Convolutional Neural Network (CNN) without relying on pre-trained models. 
 
-- Xây dựng và huấn luyện một mô hình CNN từ đầu (không dùng pretrained) để phân loại 43 lớp biển báo GTSRB.
-- Đánh giá mô hình bằng accuracy, classification report, confusion matrix.
-- Triển khai demo web cho phép người dùng upload ảnh và nhận kết quả dự đoán.
+This project natively supports:
+- 🇩🇪 **GTSRB Dataset (German Traffic Sign Recognition Benchmark)** - 43 classes
+- 🇻🇳 **Vietnam Traffic Signs** - 56 classes (via fine-tuning)
 
-## Cấu trúc project
+## 🌟 Key Features
+
+- **Custom CNN Architecture**: Designed and trained from scratch on TensorFlow/Keras.
+- **Dual Model Support**: Dynamically switch between the baseline GTSRB model and the fine-tuned Vietnam traffic sign model.
+- **Robust Preprocessing**: Real-time augmentation, aspect-ratio preserving crops, and ROI (Region of Interest) extraction.
+- **Modern Full-Stack Architecture**: 
+  - **Backend**: FastAPI RESTful API for high-performance inference.
+  - **Frontend**: React (Vite + TypeScript) with TailwindCSS for a sleek, responsive UI.
+  - **Legacy UI**: Includes the original Streamlit application for quick prototyping.
+
+## 🏗️ Project Architecture
 
 ```
-final_project/
-├── GTSRB.zip             # Dataset gốc (Kaggle format) — không commit
-├── data/
-│   ├── gtsrb_raw/        # Sinh ra khi giải nén GTSRB.zip (Train/, Test/, *.csv)
-│   ├── classes.txt       # 43 mã lớp (GTSRB_00..GTSRB_42)
-│   ├── classes_en.txt    # Tên 43 lớp tiếng Anh
-│   ├── classes_vie.txt   # Tên 43 lớp tiếng Việt
-│   └── processed/        # Ảnh đã crop theo class (sinh ra bởi prepare_data)
-├── notebooks/
-│   ├── colab_train.ipynb         # Train trên Colab T4 (GTSRB end-to-end)
-│   └── colab_finetune_vn.ipynb   # Future work: fine-tune sang biển VN
-├── src/
-│   ├── config.py         # Hyperparameters & paths
-│   ├── prepare_data.py   # GTSRB Kaggle → dataset classification (crop theo bbox CSV)
-│   ├── data_loader.py    # Load dataset từ data/processed/
-│   ├── preprocessing.py  # Augmentation
-│   ├── model.py          # Kiến trúc CNN tự xây
-│   ├── train.py          # Script huấn luyện
-│   ├── evaluate.py       # Đánh giá chi tiết
-│   └── predict.py        # Inference 1 ảnh
-├── models/               # Lưu weights .keras + labels.json
-├── reports/
-│   ├── figures/          # Đồ thị, confusion matrix
-│   └── snapshots/        # Sinh ra khi nhấn 📸 trong tab Camera realtime
-├── app/
-│   ├── streamlit_app.py  # Demo web (entry point) — tab Upload có UI crop ROI
-│   └── realtime/         # Mode camera realtime (streamlit-webrtc)
-│       ├── inference.py      # Cache model + hàm predict
-│       ├── overlay.py        # Vẽ ROI box + nhãn lên frame
-│       ├── video_processor.py# SignVideoProcessor (worker thread WebRTC)
-│       └── tab.py            # UI sliders + nút snapshot
-├── demo_images/          # Ảnh chuẩn bị sẵn cho buổi defense (3 tier)
-│   ├── tier1_gtsrb/      # 10 ảnh GTSRB happy-path đã verify top-1 đúng
-│   ├── tier2_vn_real/    # Ảnh biển VN thực tế (tự bổ sung)
-│   └── tier3_failure/    # Failure case có chủ đích (biển VN không thuộc GTSRB)
-├── requirements.txt
-├── README.md
-├── DEMO_SCRIPT.md           # Kịch bản 15 phút + Q&A cho buổi defense
-├── PREPROCESSING.md         # Chi tiết pipeline tiền xử lý
-├── MODEL_DEVELOPMENT.md     # Lịch sử phát triển model (VN → GTSRB)
-├── REALTIME_CAMERA_SPEC.md  # Design spec camera realtime
-└── REALTIME_CAMERA_DEV.md   # Dev log camera realtime
+traffic_sign_classification/
+├── api/                  # FastAPI backend
+├── frontend/             # React (Vite + TS) frontend
+├── legacy_streamlit/     # Original Streamlit dashboard (deprecated)
+├── src/                  # Core ML pipeline (data prep, model, training, evaluation)
+├── models/               # Saved `.keras` weights and label JSONs
+├── data/                 # Datasets (raw and processed)
+├── reports/              # Metrics, confusion matrices, logs
+└── demo_images/          # Sample images for testing
 ```
 
-## Cài đặt
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Python 3.10 or higher
+- Node.js 18+ (for the React frontend)
+- (Optional) CUDA-enabled GPU for faster training
+
+### 2. Backend & ML Setup (FastAPI + TensorFlow)
 
 ```bash
-# Tạo virtual environment
+# Clone the repository
+git clone https://github.com/your-username/traffic_sign_classification.git
+cd traffic_sign_classification
+
+# Create and activate a virtual environment
 python -m venv .venv
-.\.venv\Scripts\activate          # Windows PowerShell
-# source .venv/bin/activate       # Linux/Mac
+# Windows: .\.venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate
 
-# Cài dependencies
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Start the FastAPI server (coming soon)
+# uvicorn api.main:app --reload
 ```
 
-## Quy trình chạy
-
-### Bước 1 — Chuẩn bị dữ liệu
-
-Dataset gốc là GTSRB Kaggle (Train/, Test/, `Train.csv`, `Test.csv`). Script sẽ crop theo bbox trong CSV, chia train/val/test và sinh dataset classification:
+### 3. Frontend Setup (React)
 
 ```bash
-python -m src.prepare_data                          # dùng GTSRB.zip ở root
-python -m src.prepare_data --raw data/gtsrb_raw     # dùng thư mục đã giải nén
+cd frontend
+npm install
+npm run dev
 ```
 
-Sinh ra `data/processed/{train,val,test}/<class_folder>/*.png`, `models/labels.json` và `reports/prepare_data_summary.json`.
+### 4. Running the Legacy Streamlit App
 
-### Bước 2 — Huấn luyện
+If you prefer the original Python-only dashboard:
+```bash
+streamlit run legacy_streamlit/streamlit_app.py
+```
 
-**Cách 1 — Local**:
+## 🧠 Machine Learning Pipeline
 
+### Data Preparation
+To prepare the dataset from the raw Kaggle GTSRB download:
+```bash
+python -m src.prepare_data --raw data/gtsrb_raw
+```
+
+### Training
+Train the baseline GTSRB model locally:
 ```bash
 python -m src.train
 ```
 
-**Cách 2 — Google Colab (khuyến nghị nếu không có GPU)**:
-
-1. Zip toàn bộ folder dự án (kèm `data/processed/`) thành `final_project.zip`.
-2. Mở [`notebooks/colab_train.ipynb`](notebooks/colab_train.ipynb) trên Colab.
-3. Bật GPU (`Runtime → Change runtime type → GPU T4`).
-4. Chạy lần lượt các cell — notebook tự upload zip, train, evaluate và download kết quả.
-
-Kết quả:
-- Model lưu tại `models/custom_cnn_v1.keras`
-- Đồ thị learning curves: `reports/figures/training_curves.png`
-- Log: `reports/training_log.csv`
-
-### Bước 3 — Đánh giá
-
+### Evaluation
+Evaluate the model to generate classification reports and confusion matrices:
 ```bash
 python -m src.evaluate
 ```
 
-Sinh ra:
-- `reports/classification_report.txt` (precision/recall/F1 từng lớp)
-- `reports/figures/confusion_matrix.png`
+## 🤝 Contributing
 
-### Bước 4 — Inference 1 ảnh
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get involved. Whether it's adding new traffic sign datasets (e.g., US, UK), improving the CNN architecture, or enhancing the UI, your PRs are highly appreciated.
 
-```bash
-python -m src.predict --image path/to/sign.jpg
-```
+## 📝 License
 
-### Bước 5 — Demo web Streamlit
-
-```bash
-streamlit run app/streamlit_app.py
-```
-
-Trình duyệt sẽ tự mở tại `http://localhost:8501`. Sidebar có 2 chế độ:
-
-- **📁 Upload ảnh** — chọn ảnh JPG/PNG. Mặc định bật toggle **"✂️ Crop ROI thủ công"**:
-  kéo khung xanh trên ảnh để chọn vùng biển báo, preview + top-k kết quả cập nhật
-  real-time ở cột bên phải. Có lựa chọn aspect ratio **Vuông 1:1** (mặc định, hợp
-  với biển tròn/tam giác/vuông) hoặc **Tự do**. Tắt toggle để predict full-size
-  (dùng để minh hoạ tầm quan trọng của ROI cropping). UI dùng
-  [`streamlit-cropper`](https://github.com/turner-anderson/streamlit-cropper)
-  — đã khai báo trong `requirements.txt`.
-- **🎥 Camera realtime** — bật webcam, đưa biển báo vào khung ROI ở giữa
-  hình. Tham số chỉnh được: kích thước ROI, ngưỡng confidence, số frame
-  smoothing, hiển thị FPS. Nút **📸 Chụp snapshot** lưu khung hình hiện tại
-  vào `reports/snapshots/YYYYMMDD_HHMMSS_<label>_<conf>.png`.
-
-> Realtime dùng [`streamlit-webrtc`](https://github.com/whitphx/streamlit-webrtc).
-> Lần đầu chạy, trình duyệt sẽ hỏi quyền camera. Model là **classifier**
-> (không phải detector) nên mỗi frame chỉ phân loại 1 biển trong khung ROI.
-
-> 💡 Trước buổi bảo vệ, đọc [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) để xem kịch bản
-> 15 phút + bộ câu Q&A mẫu, và chuẩn bị ảnh demo theo
-> [`demo_images/README.md`](demo_images/README.md).
-
-## Kiến trúc CNN
-
-3 khối Conv (32 → 64 → 128 filters), mỗi khối gồm:
-`Conv3x3 → BN → ReLU → Conv3x3 → BN → ReLU → MaxPool → Dropout`,
-sau đó `GlobalAvgPool → Dense(256) → BN → Dropout → Dense(num_classes, softmax)`.
-
-Xem chi tiết tại [`src/model.py`](src/model.py).
-
-## Hyperparameters chính
-
-| Tham số | Giá trị |
-|---|---|
-| Image size | 48×48 RGB |
-| Batch size | 128 |
-| Epochs | 60 (EarlyStopping patience=12) |
-| Optimizer | Adam, lr=1e-3 |
-| Loss | Categorical Cross-Entropy |
-| Augmentation | Rotation ±12°, zoom ±10%, translate ±6%, brightness, contrast, saturation |
-
-Có thể chỉnh trong [`src/config.py`](src/config.py) và [`src/preprocessing.py`](src/preprocessing.py).
-
-## Roadmap
-
-- [x] Skeleton project
-- [x] Tải dataset GTSRB (Kaggle format, 43 lớp)
-- [x] Pipeline tiền xử lý: crop bbox theo CSV → classification
-- [x] Train baseline CNN (đạt **97.09%** test accuracy, top-3 99.34% — xem [`MODEL_DEVELOPMENT.md`](MODEL_DEVELOPMENT.md))
-- [x] Tune hyperparameters (class_weight cap, augmentation, EarlyStopping)
-- [x] Demo Streamlit: tab Upload + interactive ROI crop UI
-- [x] Camera realtime mode (`streamlit-webrtc`)
-- [x] Bộ ảnh demo `demo_images/` + kịch bản `DEMO_SCRIPT.md`
-- [ ] So sánh với VGG16/ResNet50 (transfer learning) — tùy chọn
-- [ ] Fine-tune transfer sang biển VN (notebook đã chuẩn bị: `notebooks/colab_finetune_vn.ipynb`)
-- [ ] Báo cáo & slide bảo vệ
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

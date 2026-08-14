@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { Upload, Camera, Video, TrafficCone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useModelType } from '@/hooks/useModelType'
 
 const NAV = [
   { to: '/', label: 'Tải ảnh', icon: Upload, end: true },
@@ -11,6 +12,8 @@ const NAV = [
 
 /** Global layout: sticky header with nav + theme/lang toggles, routed body. */
 export function AppShell() {
+  const { modelType, setModelType } = useModelType()
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
@@ -46,6 +49,18 @@ export function AppShell() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <select 
+              className="hidden sm:block border rounded px-2 py-1 text-sm bg-background cursor-pointer"
+              value={modelType}
+              onChange={(e) => {
+                setModelType(e.target.value as 'gtsrb' | 'vn')
+                // Reload window to re-initialize TFJS with the new model
+                window.location.reload()
+              }}
+            >
+              <option value="gtsrb">🇩🇪 GTSRB (43 Lớp)</option>
+              <option value="vn">🇻🇳 Việt Nam (56 Lớp)</option>
+            </select>
             <ThemeToggle />
           </div>
         </div>
@@ -57,3 +72,4 @@ export function AppShell() {
     </div>
   )
 }
+

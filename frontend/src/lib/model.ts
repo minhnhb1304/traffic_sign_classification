@@ -19,7 +19,12 @@ export async function loadModel(): Promise<tf.LayersModel> {
         await tf.setBackend('cpu')
       }
       await tf.ready()
-      const model = await tf.loadLayersModel(assetUrl('model/model.json'))
+
+      // Read modelType from localStorage (set by useModelType hook)
+      const modelType = localStorage.getItem('tsr-model-type') || 'gtsrb'
+      const modelPath = modelType === 'vn' ? 'model_vn/model.json' : 'model/model.json'
+
+      const model = await tf.loadLayersModel(assetUrl(modelPath))
       // Warm-up pass with a zero tensor to compile shaders / allocate buffers.
       tf.tidy(() => {
         ;(model.predict(tf.zeros([1, 48, 48, 3])) as tf.Tensor).dataSync()
