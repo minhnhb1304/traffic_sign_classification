@@ -45,3 +45,16 @@ Thumbs.db
 
 # Kaggle credentials
 kaggle.json
+
+# Vietnamese crops — derived from a CC BY-SA 4.0 dataset, not redistributed here
+data/processed_vn/
+
+# Release bundle (build artifact)
+_release/
+
+# Extra virtualenv
+.venv-tfjs/
+
+# Course defense artifacts
+reports/slides_final_project.pptx
+reports/slide_previews/
